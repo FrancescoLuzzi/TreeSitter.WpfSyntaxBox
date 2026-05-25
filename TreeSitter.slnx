@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TreeSitter.WpfSyntaxBox/TreeSitter.WpfSyntaxBox.csproj" />
+  <Project Path="TreeSitter.WpfSyntaxBox.Tests/TreeSitter.WpfSyntaxBox.Tests.csproj" />
+  <Project Path="TreeSitter.WpfSyntaxBox.Demo/TreeSitter.WpfSyntaxBox.Demo.csproj" />
+  <Project Path="TreeSitter.WpfSyntaxBox.Benchmarks/TreeSitter.WpfSyntaxBox.Benchmarks.csproj" />
+</Solution>
