@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+
+jobs:
+  publish:
+    name: Publish GitHub Package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tags must match v<major>.<minor>.<patch>. Current tag: $tag"
+          }
+
+          $packageVersion = $tag.Substring(1)
+          "PACKAGE_VERSION=$packageVersion" >> $env:GITHUB_ENV
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate release notes
+        run: git-cliff --config cliff.toml --latest --strip header --output RELEASE_NOTES.md
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.slnx', '**/*.csproj', '**/packages.lock.json', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore .NET packages
+        run: dotnet restore TreeSitter.slnx
+
+      - name: Pack TreeSitter.WpfSyntaxBox
+        run: dotnet pack TreeSitter.WpfSyntaxBox/TreeSitter.WpfSyntaxBox.csproj --configuration Release --no-restore --output artifacts/packages /p:PackageVersion=${{ env.PACKAGE_VERSION }} /p:Version=${{ env.PACKAGE_VERSION }} /p:ContinuousIntegrationBuild=true
+
+      - name: Publish to GitHub Packages
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: artifacts/packages/*.nupkg
+          fail_on_unmatched_files: true
