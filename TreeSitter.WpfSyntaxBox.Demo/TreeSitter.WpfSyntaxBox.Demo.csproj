@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TreeSitter.WpfSyntaxBox.Demo</RootNamespace>
+    <AssemblyName>TreeSitter.WpfSyntaxBox.Demo</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TreeSitter.WpfSyntaxBox\TreeSitter.WpfSyntaxBox.csproj" />
+  </ItemGroup>
+
+</Project>

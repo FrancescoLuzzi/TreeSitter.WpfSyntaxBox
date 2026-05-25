@@ -1,0 +1,94 @@
+<Window x:Class="TreeSitter.WpfSyntaxBox.Demo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:syntax="clr-namespace:TreeSitter.WpfSyntaxBox;assembly=TreeSitter.WpfSyntaxBox"
+        xmlns:local="clr-namespace:TreeSitter.WpfSyntaxBox.Demo"
+        Title="TreeSitter SyntaxBox Demo"
+        Height="560"
+        Width="920">
+    <DockPanel Background="#1A1B26">
+        <StackPanel DockPanel.Dock="Top"
+                Orientation="Horizontal"
+                Margin="8">
+            <Button Margin="0,0,8,0"
+                    Padding="12,6"
+                    Click="ToggleSyntax_Click"
+                    Content="Toggle Syntax"/>
+            <Button Margin="0,0,8,0"
+                    Padding="12,6"
+                    Click="ToggleWrap_Click"
+                    Content="Toggle Wrap"/>
+            <TextBlock VerticalAlignment="Center"
+                       Margin="8,0,4,0"
+                       Foreground="#C0CAF5"
+                       Text="Language"/>
+            <ComboBox x:Name="LanguageSelector"
+                      Width="120"
+                      Margin="0,0,8,0"
+                      VerticalAlignment="Center"
+                       SelectedIndex="0"
+                       SelectionChanged="LanguageSelector_SelectionChanged">
+                <ComboBoxItem Content="C#" Tag="CSharp"/>
+                <ComboBoxItem Content="Lua" Tag="Lua"/>
+            </ComboBox>
+            <TextBlock VerticalAlignment="Center"
+                       Margin="8,0,4,0"
+                       Foreground="#C0CAF5"
+                       Text="Theme"/>
+            <ComboBox x:Name="ThemeSelector"
+                      Width="160"
+                      Margin="0,0,8,0"
+                      VerticalAlignment="Center"
+                      SelectedIndex="0"
+                      SelectionChanged="ThemeSelector_SelectionChanged">
+                <ComboBoxItem Content="Tokyo Night Dark" Tag="TokyoNight"/>
+                <ComboBoxItem Content=".NET Fluent Light" Tag="DotNetFluent"/>
+            </ComboBox>
+            <TextBlock VerticalAlignment="Center"
+                    x:Name="StatusText"
+                    Foreground="#C0CAF5"
+                    Text="Tree-sitter powered highlighting"/>
+        </StackPanel>
+
+        <TextBox x:Name="Editor"
+                 Foreground="#C0CAF5"
+                 syntax:SyntaxBox.Enable="True"
+                 syntax:SyntaxBox.ExpandTabs="True"
+                 syntax:SyntaxBox.AutoIndent="True"
+                 syntax:SyntaxBox.ShowLineNumbers="True"
+                 syntax:SyntaxBox.HighlightContextLines="150"
+                 syntax:SyntaxBox.LineNumbersBackground="#16161E"
+                 syntax:SyntaxBox.LineNumbersForeground="#565F89"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 Background="#1A1B26"
+                 BorderBrush="#414868"
+                 CaretBrush="#C0CAF5"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 Padding="4"
+                 FontFamily="Consolas"
+                  FontSize="14">
+            <syntax:SyntaxBox.SyntaxDriver>
+                <syntax:SyntaxLanguage x:Name="EditorSyntaxLanguage" Language="CSharp">
+                    <syntax:SyntaxLanguage.Theme>
+                        <syntax:TokyoNightDarkLanguageTheme/>
+                    </syntax:SyntaxLanguage.Theme>
+                </syntax:SyntaxLanguage>
+            </syntax:SyntaxBox.SyntaxDriver>
+
+            <TextBox.CommandBindings>
+                <CommandBinding Command="local:Commands.CommentCommand"
+                        Executed="OnCommentCommand"/>
+                <CommandBinding Command="local:Commands.UncommentCommand"
+                        Executed="OnUncommentCommand"/>
+            </TextBox.CommandBindings>
+            <TextBox.InputBindings>
+                <syntax:KeySequenceBinding Gesture="Ctrl+K,C"
+                        Command="local:Commands.CommentCommand"/>
+                <syntax:KeySequenceBinding Gesture="Ctrl+K,U"
+                        Command="local:Commands.UncommentCommand"/>
+            </TextBox.InputBindings>
+        </TextBox>
+    </DockPanel>
+</Window>
