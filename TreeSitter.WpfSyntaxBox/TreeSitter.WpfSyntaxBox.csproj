@@ -9,6 +9,7 @@
     <AssemblyName>TreeSitter.WpfSyntaxBox</AssemblyName>
     <PackageId>TreeSitter.WpfSyntaxBox</PackageId>
     <Description>Owned WPF SyntaxBox implementation for Tree-sitter syntax highlighting.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
