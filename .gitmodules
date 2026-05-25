@@ -1,0 +1,3 @@
+[submodule "vendor/tree-sitter-dotnet-bindings"]
+	path = vendor/tree-sitter-dotnet-bindings
+	url = http://github.com/FrancescoLuzzi/tree-sitter-dotnet-bindings
