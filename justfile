@@ -12,7 +12,7 @@ default:
 
 # Restore NuGet packages.
 restore:
-    dotnet restore "{{solution}}"
+    dotnet restore "{{solution}}" --locked-mode
 
 # Build all .NET projects, including the WPF SyntaxBox implementation and demo.
 build:
@@ -52,7 +52,7 @@ benchmark-scroll-smoke:
 
 # Run the full local CI sequence.
 ci:
-    dotnet restore "{{solution}}"
+    dotnet restore "{{solution}}" --locked-mode
     dotnet build "{{solution}}" --configuration Release --no-restore
     dotnet test "{{tests}}" --configuration Release --no-build
 
