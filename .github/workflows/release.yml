@@ -20,16 +20,19 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Enable Git long paths
+        run: git config --global core.longpaths true
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
+          submodules: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          global-json-file: global.json
 
       - name: Validate release tag
         shell: pwsh
@@ -57,12 +60,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.slnx', '**/*.csproj', '**/packages.lock.json', '**/Directory.Packages.props') }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', '**/packages.lock.json') }}
           restore-keys: |
             nuget-${{ runner.os }}-
 
       - name: Restore .NET packages
-        run: dotnet restore TreeSitter.slnx
+        run: dotnet restore TreeSitter.slnx --locked-mode
 
       - name: Pack TreeSitter.WpfSyntaxBox
         run: dotnet pack TreeSitter.WpfSyntaxBox/TreeSitter.WpfSyntaxBox.csproj --configuration Release --no-restore --output artifacts/packages /p:PackageVersion=${{ env.PACKAGE_VERSION }} /p:Version=${{ env.PACKAGE_VERSION }} /p:ContinuousIntegrationBuild=true
