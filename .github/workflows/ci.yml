@@ -1,0 +1,46 @@
+name: Testing
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+
+jobs:
+  build-test:
+    name: Build and Test
+    runs-on: windows-latest
+    environment:
+      name: testing
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.slnx', '**/*.csproj', '**/packages.lock.json', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore .NET packages
+        run: dotnet restore TreeSitter.slnx
+
+      - name: Build all .NET projects
+        run: dotnet build TreeSitter.slnx --configuration Release --no-restore
+
+      - name: Test all .NET projects
+        run: dotnet test TreeSitter.slnx --configuration Release --no-build --verbosity normal
