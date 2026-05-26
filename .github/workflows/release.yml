@@ -31,9 +31,7 @@ jobs:
 
       - name: Fetch Level 2 Submodules Only
         run: |
-          # This initializes and updates submodules contained within the top-level submodules,
-          # but does not recurse any further down.
-          git submodule foreach --recursive 'git submodule update --init'
+          git submodule foreach 'git -c protocol.version=2 submodule update --init --force --depth=1'
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
