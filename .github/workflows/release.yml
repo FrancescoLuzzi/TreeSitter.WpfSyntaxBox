@@ -58,7 +58,7 @@ jobs:
         run: git-cliff --config cliff.toml --latest --strip header --output RELEASE_NOTES.md
         env:
           GITHUB_REPO: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Cache NuGet packages
         uses: actions/cache@v5
@@ -75,7 +75,7 @@ jobs:
         run: dotnet pack TreeSitter.WpfSyntaxBox/TreeSitter.WpfSyntaxBox.csproj --configuration Release --no-restore --output artifacts/packages /p:PackageVersion=${{ env.PACKAGE_VERSION }} /p:Version=${{ env.PACKAGE_VERSION }} /p:ContinuousIntegrationBuild=true
 
       - name: Publish to GitHub Packages
-        run: dotnet nuget push "artifacts/packages/TreeSitter.WpfSyntaxBox.${{ env.PACKAGE_VERSION }}.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+        run: dotnet nuget push "artifacts/packages/TreeSitter.WpfSyntaxBox.${{ env.PACKAGE_VERSION }}.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ github.token }}" --skip-duplicate
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
