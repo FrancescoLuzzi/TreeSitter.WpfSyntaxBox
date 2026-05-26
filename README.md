@@ -23,11 +23,15 @@ TreeSitter.net/
 ## Requirements
 
 - Windows for building the WPF SyntaxBox implementation and demo.
-- .NET SDK `10.0.x`.
+- .NET SDK `10.0.x`. The WPF library, demo, and benchmarks multi-target `net10.0-windows` by default, plus `net9.0-windows` and `net8.0-windows`; tests target `net10.0-windows` so `dotnet test` works with the default SDK/runtime.
+- Visual Studio 2022 with the `v143` C++ build tools, or a newer Visual Studio installation with the `v143` platform toolset/workloads installed. The vendored Tree-sitter native projects target `PlatformToolset=v143`.
 - Optional: `just` for the provided command runner.
 - Optional: `git-cliff` for local changelog generation.
 
 ## Installation
+
+> [!WARNING]
+> Building this repository requires Visual Studio 2022 with the `v143` C++ build tools, or a newer Visual Studio installation with the `v143` platform toolset/workloads installed. The vendored Tree-sitter native projects target `PlatformToolset=v143`.
 
 The package is published to GitHub Packages. Add the authenticated package source first, replacing `OWNER` and `YOUR_GITHUB_TOKEN` with values that can read packages from this repository.
 

@@ -1,27 +1,59 @@
 <Project>
   <PropertyGroup>
     <VendoredTreeSitterRoot>$(MSBuildThisFileDirectory)vendor\tree-sitter-dotnet-bindings\</VendoredTreeSitterRoot>
+    <VendoredTreeSitterManagedProject>$(VendoredTreeSitterRoot)src\TreeSitter.csproj</VendoredTreeSitterManagedProject>
     <VendoredTreeSitterNativeOutput>$(VendoredTreeSitterRoot)build\runtimes\win-x64\native\</VendoredTreeSitterNativeOutput>
-    <VsMSBuildExe Condition="Exists('C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe')">C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe</VsMSBuildExe>
-    <VsMSBuildExe Condition="'$(VsMSBuildExe)' == '' And Exists('C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe')">C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe</VsMSBuildExe>
-    <VsMSBuildExe Condition="'$(VsMSBuildExe)' == '' And Exists('C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe')">C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe</VsMSBuildExe>
-    <VsMSBuildExe Condition="'$(VsMSBuildExe)' == '' And Exists('C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe')">C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe</VsMSBuildExe>
+    <VendoredTreeSitterNativeSolution>$(VendoredTreeSitterRoot)tree-sitter-native\tree-sitter-native.sln</VendoredTreeSitterNativeSolution>
+    <VsWhereExe Condition="'$(VsWhereExe)' == '' And Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe')">$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe</VsWhereExe>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT' And Exists('$(VendoredTreeSitterNativeSolution)')">
+    <VendoredTreeSitterNativeProject Include="$(VendoredTreeSitterRoot)tree-sitter-native\*.vcxproj" />
+    <VendoredTreeSitterNativeExpectedLibrary Include="@(VendoredTreeSitterNativeProject->'$(VendoredTreeSitterNativeOutput)%(Filename).dll')" />
+  </ItemGroup>
+
+  <Target Name="FindVisualStudioMSBuild"
+          Condition="'$(OS)' == 'Windows_NT' And '$(VsMSBuildExe)' == '' And Exists('$(VsWhereExe)')">
+    <Exec Command="&quot;$(VsWhereExe)&quot; -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\Current\Bin\MSBuild.exe"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="Low"
+          IgnoreExitCode="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VsMSBuildExe" />
+    </Exec>
+    <PropertyGroup>
+      <VsMSBuildExe>$([System.String]::Copy('$(VsMSBuildExe)').Trim())</VsMSBuildExe>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="PrepareVendoredTreeSitterNativeBuild"
+          Condition="'$(OS)' == 'Windows_NT' And Exists('$(VendoredTreeSitterNativeSolution)')">
+    <PropertyGroup>
+      <VendoredTreeSitterNativeIncrementalOutputs Condition="'$(ForceBuildVendoredTreeSitterNative)' != 'true'">@(VendoredTreeSitterNativeExpectedLibrary)</VendoredTreeSitterNativeIncrementalOutputs>
+      <VendoredTreeSitterNativeIncrementalOutputs Condition="'$(ForceBuildVendoredTreeSitterNative)' == 'true'">$(BaseIntermediateOutputPath)force-build-vendored-tree-sitter-native</VendoredTreeSitterNativeIncrementalOutputs>
+    </PropertyGroup>
+  </Target>
 
   <Target Name="BuildVendoredTreeSitterNative"
           BeforeTargets="ResolveReferences"
-          Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(OS)' == 'Windows_NT' And '$(DesignTimeBuild)' != 'true' And Exists('$(VendoredTreeSitterRoot)src\TreeSitter.csproj') And ('$(ForceBuildVendoredTreeSitterNative)' == 'true' Or !Exists('$(VendoredTreeSitterNativeOutput)tree-sitter.dll') Or !Exists('$(VendoredTreeSitterNativeOutput)tree-sitter-c-sharp.dll') Or !Exists('$(VendoredTreeSitterNativeOutput)tree-sitter-lua.dll'))">
+          DependsOnTargets="FindVisualStudioMSBuild;PrepareVendoredTreeSitterNativeBuild"
+          Inputs="$(VendoredTreeSitterNativeSolution);@(VendoredTreeSitterNativeProject)"
+          Outputs="$(VendoredTreeSitterNativeIncrementalOutputs)"
+          Condition="'$(MSBuildProjectFullPath)' == '$(VendoredTreeSitterManagedProject)' And '$(OS)' == 'Windows_NT' And '$(DesignTimeBuild)' != 'true' And Exists('$(VendoredTreeSitterNativeSolution)')">
     <Error Condition="'$(VsMSBuildExe)' == ''"
-           Text="The vendored Tree-sitter native DLLs are missing and Visual Studio MSBuild was not found. Build vendor\tree-sitter-dotnet-bindings\tree-sitter-native projects with Visual Studio Build Tools, or provide the generated vendor\tree-sitter-dotnet-bindings\build\runtimes\win-x64\native DLLs." />
+           Text="The vendored Tree-sitter native DLLs are missing and Visual Studio MSBuild was not found. Build vendor\tree-sitter-dotnet-bindings\tree-sitter-native\tree-sitter-native.sln with Visual Studio Build Tools, or provide the generated vendor\tree-sitter-dotnet-bindings\build\runtimes\win-x64\native DLLs." />
 
-    <Exec Command="&quot;$(VsMSBuildExe)&quot; &quot;$(VendoredTreeSitterRoot)tree-sitter-native\tree-sitter.vcxproj&quot; /t:Build /p:Configuration=Release /p:Platform=x64 /m" />
-    <Exec Command="&quot;$(VsMSBuildExe)&quot; &quot;$(VendoredTreeSitterRoot)tree-sitter-native\tree-sitter-c-sharp.vcxproj&quot; /t:Build /p:Configuration=Release /p:Platform=x64 /m" />
-    <Exec Command="&quot;$(VsMSBuildExe)&quot; &quot;$(VendoredTreeSitterRoot)tree-sitter-native\tree-sitter-lua.vcxproj&quot; /t:Build /p:Configuration=Release /p:Platform=x64 /m" />
+    <PropertyGroup>
+      <VendoredTreeSitterPlatformToolset Condition="'$(VendoredTreeSitterPlatformToolset)' == '' And $([System.String]::Copy('$(VsMSBuildExe)').Contains('\Microsoft Visual Studio\18\'))">v145</VendoredTreeSitterPlatformToolset>
+      <VendoredTreeSitterPlatformToolsetArg Condition="'$(VendoredTreeSitterPlatformToolset)' != ''"> /p:PlatformToolset=$(VendoredTreeSitterPlatformToolset)</VendoredTreeSitterPlatformToolsetArg>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(VendoredTreeSitterNativeOutput)" />
+    <Exec Command="&quot;$(VsMSBuildExe)&quot; &quot;$(VendoredTreeSitterNativeSolution)&quot; /t:Build /p:Configuration=Release /p:Platform=x64$(VendoredTreeSitterPlatformToolsetArg) /m" />
   </Target>
 
   <Target Name="CopyVendoredTreeSitterNativeLibraries"
           AfterTargets="Build"
-          Condition="'$(OS)' == 'Windows_NT' And '$(MSBuildProjectExtension)' == '.csproj' And Exists('$(VendoredTreeSitterNativeOutput)tree-sitter.dll')">
+          Condition="'$(OS)' == 'Windows_NT' And '$(MSBuildProjectExtension)' == '.csproj' And '$(IsCrossTargetingBuild)' != 'true' And '$(OutDir)' != '' And Exists('$(VendoredTreeSitterNativeOutput)tree-sitter.dll')">
     <ItemGroup>
       <VendoredTreeSitterNativeLibrary Include="$(VendoredTreeSitterNativeOutput)*.*" />
     </ItemGroup>
