@@ -10,14 +10,32 @@
     <PackageId>TreeSitter.WpfSyntaxBox</PackageId>
     <Description>Owned WPF SyntaxBox implementation for Tree-sitter syntax highlighting.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeVendoredManagedAssemblyInPackage</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeVendoredNativeLibrariesInPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\vendor\tree-sitter-dotnet-bindings\src\TreeSitter.csproj" />
+    <ProjectReference Include="..\vendor\tree-sitter-dotnet-bindings\src\TreeSitter.csproj"
+                      PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="TreeSitter\Queries\**\*.scm" />
   </ItemGroup>
+
+  <Target Name="IncludeVendoredManagedAssemblyInPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeVendoredNativeLibrariesInPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(VendoredTreeSitterNativeOutput)*.*"
+                              Condition="Exists('$(VendoredTreeSitterNativeOutput)tree-sitter.dll')">
+        <PackagePath>runtimes\win-x64\native\</PackagePath>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+  </Target>
 
 </Project>
